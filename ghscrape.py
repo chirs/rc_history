@@ -1,4 +1,7 @@
-# What's popular at recurse center?
+#!/usr/bin/env python3
+
+# Scrape github for repositories that have been created by 
+# users during a given time period.
 
 import datetime
 import os
@@ -11,7 +14,8 @@ from github import Github, GithubException
 from hackers import lst
 
 
-# 1. How to handle rate limiting at different access points.
+# 1. How to handle rate limiting at different access points; avoid disgusting anti-pattern.
+
 # 2. How to hide secrets: my passwords, hs usernames, data
 # 3. How to handle lightweight persistency - don't want to set-up a database, but scraping takes a long time.
 # 4. Other ways to quantify repo quality.
@@ -24,30 +28,81 @@ from hackers import lst
 # 3. Incorrect github names.
 
 
-g = Github('user', 'password')
 
+# The Github API stuff.
+# This is 
+
+githubAPI = Github('user', 'password')
+
+def started_at_rc(dt, batch_dates):
+    """
+    Was this database started at Recurse Center?
+    Check if the given date object fits between a pair of start/end dates. 
+    """
+    for start, end in batch_dates:
+        if dt < end and dt > start:
+            return True
+    return False
+
+
+def collect_repos(lst):
+    """
+    Collect all repos created during recurse center.
+    """
+
+    l = load_github()
+
+    for username, batch_dates in lst:
+
+        if not check_users(username):
+
+            repos = repos_for_user(username)
+            for repo in repos:
+                if started_at_rc(repo['start_date'], batch_dates):
+                    l.append(repo)
+
+            save_github(l)
+
+        save_user(username)
+        
+    return l
+
+
+
+def check_rate_limit():
+    if githubAPI.rate_limiting[0] == 0:
+        sleep_time = githubAPI.rate_limiting_resettime - time.time()
+        print('sleeping ' + str(sleep_time))
+        time.sleep(sleep_time)
+        return True
+    else:
+        return False
 
 
 def repos_for_user(username):
+    """
+    Retrieve all repos for a user given...
+    """
+    # Oh my. So much rate limiting code here. 
+    # Split this into separate items.
+
     l = []
 
     try:
-        repos = [e for e in g.get_user(username).get_repos()]
+        repos = [e for e in githubAPI.get_user(username).get_repos()]
+
     except GithubException as e:
-        if g.rate_limiting[0] == 0:
+        if check_rate_limit():
+            repos = [e for e in githubAPI.get_user(username).get_repos()]
 
-            sleep_time = g.rate_limiting_resettime - time.time()
-            print('sleeping ' + str(sleep_time))
-            time.sleep(sleep_time)
-
-            repos = [e for e in g.get_user(username).get_repos()]
-
-        elif e.status in (404, ): # not found
+        elif e.status in (404, ): # repositories not found
             print(username)
             return []
         else:
+            # Some other error. 
             import pdb; pdb.set_trace()
             x = 5
+
     except:
         print(username)
         return []
@@ -62,54 +117,37 @@ def repos_for_user(username):
         try:
             commits = repo.get_commits().reversed
         except GithubException as e:
-            if g.rate_limiting[0] == 0:
-                sleep_time = g.rate_limiting_resettime - time.time()
-                print('sleeping ' + str(sleep_time))
-                time.sleep(sleep_time)
+            if check_rate_limit():
+                commits = repo.get_commits().reversed
                 
-
-            elif e.status in (409, 451, 403): # repository is empty, access is blocked, unavailable (problem on disk)
+            elif e.status in (409, 451, 403): 
+                # repository is empty (409), access is blocked (451), unavailable (problem on disk) (403)
                 continue
             else:
                 import pdb; pdb.set_trace()
                 x = 5
+
         except:
             continue
 
         try: 
-            c1 = commits[0] # need to get the first commit, not the last.
+            c1 = commits[0]
+
         except GithubException as e:
-            if g.rate_limiting[0] == 0:
-
-                sleep_time = g.rate_limiting_resettime - time.time()
-                print('sleeping ' + str(sleep_time))
-                time.sleep(sleep_time)
-
-                
-                c1 = commits[0] # try again.
+            if check_rate_limit():
+                c1 = commits[0]
 
             else:
                 raise e
             
-            
         try:
             date_string = c1.raw_data['commit']['committer']['date']
         except GithubException as e:
-            if g.rate_limiting[0] == 0:
-                sleep_time = g.rate_limiting_resettime - time.time()
-                print('sleeping ' + str(sleep_time))
-                time.sleep(sleep_time)
+            if check_rate_limit():
                 date_string = c1.raw_data['commit']['committer']['date']
-
-
         
         ds2 = date_string.split('T')[0]
-
-        try:
-            year, month, day = [int(e) for e in ds2.split('-')]
-        except:
-            import pdb; pdb.set_trace()
-
+        year, month, day = [int(e) for e in ds2.split('-')]
         dt = datetime.datetime(year, month, day)
 
         d = {
@@ -124,12 +162,13 @@ def repos_for_user(username):
 
         l.append(d)
 
-
     return l
 
 
+## Utility functions for pickling / unpickling various things.
+## These exist because I don't want to have to set up a database.
+
 def save_github(lst):
-        
     print('pickling')
     f = open('repos.pickle', 'wb')
     pickle.dump(lst, f)
@@ -137,7 +176,6 @@ def save_github(lst):
 
 
 def load_github():
-
     try:
         f = open('repos.pickle', 'rb')
         l = pickle.load(f)
@@ -146,8 +184,10 @@ def load_github():
         return []
 
 
-
 def check_empty_user():
+    """
+    Check that the users pickle exists.
+    """
 
     if not os.path.exists('users.pickle'):
         s = set()
@@ -158,6 +198,9 @@ def check_empty_user():
 
 
 def save_user(username):
+    """
+    Save a username that has been searched.
+    """
     check_empty_user()
 
     f = open('users.pickle', 'rb')
@@ -178,38 +221,11 @@ def check_users(username):
     s = pickle.load(f)
     return username in s
 
-    
-    
-
-
-def started_at_rc(dt, batch_dates):
-    for start, end in batch_dates:
-        if dt < end and dt > start:
-            return True
-    return False
-
-
-def collect_repos(lst):
-
-    l = load_github()
-
-    for username, batch_dates in lst:
-
-        if not check_users(username):
-
-            repos = repos_for_user(username)
-            for repo in repos:
-                if started_at_rc(repo['start_date'], batch_dates):
-                    l.append(repo)
-
-            save_github(l)
-
-        save_user(username)
-        
-    return l
-
 
 def main():
+    """
+    main function
+    """
 
     repos = collect_repos(lst)
 
