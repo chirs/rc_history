@@ -12,10 +12,12 @@ def top_repos(lst, key, count):
 
     lx = sorted(lst, key=lambda d: -d[key])[:count]
 
-
     print('\n{}\n'.format(key))
     for item in lx:
         print("{} {}".format(str(item[key]), item['full_name']))
+
+
+
 
 
 def load_repos():
@@ -30,9 +32,22 @@ def load_repos():
 
 
 def main():
+
+
     repos = load_repos()
-    top_repos(repos, 'stars', 50)
-    top_repos(repos, 'forks', 50)
+
+
+    for repo in sorted(repos, key=lambda d: d['full_name']):
+        description = repo['description']
+        if description and repo['stars'] > 3:
+            if 'p' in description:
+                print('{}:\t{}\n'.format(repo['full_name'], repo['description']))
+    
+
+    #top_repos(repos, 'stars', 50)
+    #top_repos(repos, 'forks', 50)
+
+
 
 
 

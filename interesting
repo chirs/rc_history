@@ -1,0 +1,54 @@
+digitized_artparse objects from the Cooper-Hewitt online data collection
+
+TrumpTweetGenerator: Markov chain generator for scraped Trump tweets
+
+docker-without-docker: A presentation about Docker, systemd, and containerization, given at the Recurse Center
+
+on-lisp:               A modernized and annotated code companion to Paul Graham's "On Lisp".
+
+ShootEmUp:             A shooting game experiment using functional programming principles
+
+Dora:                  Tools for exploratory data analysis in Python
+
+influence-game:        A (Slightly Cynical) Game About Influence in Congress
+
+ExpectoCastellum:      DEPRECATED IN FAVOR OF hogwarts
+
+100-best-books:        An website to play with the 100 best classical books of all time http://www.100bestbooks.xyz
+
+nes.skel:              Skeleton project for the Nintendo Entertainment System
+
+lord/doorbot:          Opens the door to Recurse Center with a text
+
+maryrosecook/gameoflife:     Conway's Game of Life, implemented in Ioke
+
+meereeum/glitchy:            Glitch art generator: guaranteed to create glitched images, "art" not guaranteed
+
+piratefsh/generative-art:    Generative art projects in Processing.js on Webpack
+
+ursooperduper/lewittscript:  An art toy based on the work of Sol LeWitt.
+
+arjans/mta-subway-cli:       This is a simple command line interface to the NYC MTA Subways.
+
+brendannee/github-visualization:  Visualization of work done at Hacker School
+
+darius/pythological:              A MiniKanren in Python
+
+dillonforrest/iterated-prisoners-dilemma-simulation:    Hacker School simulation of the iterated prisoner's dilemma. Inspired by Wharton prof Steven Kimbrough's game theory course, OPIM 319.
+
+ericqweinstein/zenodotus:                               Tracking books in the Hacker School library.
+
+gwentacle/witch_house:                                  or, Lisp: the MUD
+
+icco/rsd:                                               A directory of RC People
+
+DanielleSucher/Nantucket:                               "I ran it through Nantucket to look for limericks."
+
+
+CestDiego/sweetgreen.el:                                Get your salad from https://order.sweetgreen.com directly from Emacs
+
+
+
+
+
+
