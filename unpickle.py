@@ -36,12 +36,18 @@ def main():
 
     repos = load_repos()
 
+    format_repo = lambda repo: '{}:\t{}\n'.format(repo['full_name'], repo['description'])
 
     for repo in sorted(repos, key=lambda d: d['full_name']):
-        description = repo['description']
+        description = repo['description'].lower()
+        if 'contra' in description or 'dance' in description:
+            print(format_repo(repo))
+        
+        '''
         if description and repo['stars'] > 3:
             if 'p' in description:
-                print('{}:\t{}\n'.format(repo['full_name'], repo['description']))
+                print(
+        '''
     
 
     #top_repos(repos, 'stars', 50)
